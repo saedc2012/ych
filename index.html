@@ -2,127 +2,102 @@
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Temple Mechanism Match</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>失落文明的機關開關 (5x5)</title>
 <style>
 :root {
-  --stone-dark: #120f0c;
-  --stone-slab: #2c241d;
-  --gold-accent: #d4af37;
-  --gold-glow: rgba(212, 175, 55, 0.4);
+  --bg-dark: #0f0d0b;
+  --gold: #d4af37;
+  --gold-glow: #ffd700;
+  --stone: #2b2622;
+  --border: #4a3e35;
 }
-
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+body {
   margin: 0;
   padding: 0;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-html, body {
-  width: 100%;
-  height: 100%;
+  background-color: var(--bg-dark);
+  color: #e0d8c3;
+  font-family: serif, system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  background-color: #080605;
-  font-family: 'Cinzel', 'Georgia', serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  user-select: none;
 }
 
-.app-container {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at center, #1a140e 0%, #050403 100%);
-  padding: 10px;
-}
-
-/* Floating control button */
-.floating-control {
+.controls {
   position: fixed;
-  top: 14px;
-  right: 14px;
+  top: 12px;
+  right: 12px;
   z-index: 100;
 }
-
-.btn-icon {
-  background: rgba(26, 20, 14, 0.85);
-  color: var(--gold-accent);
-  border: 1px solid rgba(212, 175, 55, 0.5);
+.btn {
+  border: 1px solid var(--gold);
+  background: rgba(20, 16, 12, 0.85);
+  color: var(--gold);
+  border-radius: 4px;
   padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 13px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
-  transition: all 0.2s;
+  box-shadow: 0 0 10px rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  letter-spacing: 1px;
+}
+.btn:hover {
+  background: var(--gold);
+  color: #000;
 }
 
-.btn-icon:hover {
-  background: rgba(44, 36, 29, 0.95);
-  border-color: var(--gold-accent);
-  box-shadow: 0 0 10px var(--gold-glow);
-}
-
-/* Outer stone frame */
 .board-wrapper {
   position: relative;
-  width: min(90vw, 90vh);
-  height: min(90vw, 90vh);
-  border: 12px solid #231c15;
-  outline: 2px solid #080605;
-  border-radius: 4px;
-  box-shadow: inset 0 0 30px #000, 0 12px 40px rgba(0, 0, 0, 0.9);
-  /* The hidden mural image is loaded here */
+  width: min(92vw, 92vh);
+  height: min(92vw, 92vh);
   background-image: url('https://www.salvationarmy.org.hk/ssd/schs/sites/sa_schs/files/uploadfiles/Gemini_Generated_Image_wj8nfiwj8nfiwj8n.jpg');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
-  background-color: #120f0c;
+  border: 4px solid var(--border);
+  box-shadow: 0 0 30px rgba(0,0,0,0.9);
+  overflow: hidden;
 }
 
-/* 6x6 Grid with 0 spacing to block picture completely */
+/* 5x5 網格 */
 .board {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(6, 1fr);
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
   width: 100%;
   height: 100%;
   gap: 0;
-  padding: 0;
-  margin: 0;
 }
 
-/* Card item */
 .card {
   position: relative;
-  width: 100%;
-  height: 100%;
-  border: none;
+  border: 1px solid rgba(0,0,0,0.6);
   background: transparent;
   padding: 0;
-  perspective: 600px;
   cursor: pointer;
+  perspective: 600px;
+  outline: none;
 }
 
 .card-inner {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card.flipped .card-inner,
-.card.matched .card-inner {
+.card.flipped .card-inner {
   transform: rotateY(180deg);
+}
+
+.card.matched {
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 .face {
@@ -132,236 +107,137 @@ html, body {
   align-items: center;
   justify-content: center;
   backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border: 1px solid rgba(180, 140, 60, 0.25);
   box-shadow: inset 0 0 12px rgba(0,0,0,0.8);
 }
 
-/* Weathered stone slab card back with coordinate labels (A1-F6) */
 .back {
-  background: linear-gradient(145deg, #382e25 0%, #1c1611 100%);
-  color: #e2c075;
-  font-size: clamp(16px, 3vw, 26px);
-  font-weight: 900;
-  letter-spacing: 1px;
-  text-shadow: 0 2px 4px #000, 0 0 8px var(--gold-glow);
+  background: linear-gradient(135deg, #3a322b 0%, #1a1512 100%);
+  border: 1px solid #5a4a3e;
 }
 
-.card:hover .back {
-  filter: brightness(1.15);
-  border-color: rgba(212, 175, 55, 0.6);
+.back::after {
+  content: attr(data-coord);
+  font-size: clamp(14px, 3.2vw, 26px);
+  font-weight: bold;
+  color: var(--gold);
+  text-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
+  font-family: monospace, serif;
 }
 
-/* Card front with ancient symbols */
 .front {
   transform: rotateY(180deg);
-  background: linear-gradient(145deg, #1f1812 0%, #0e0a07 100%);
-  color: #f3e5ab;
-  font-size: clamp(22px, 4.2vw, 44px);
-  border-color: var(--gold-accent);
+  background: #181410;
+  font-size: clamp(22px, 5.5vw, 42px);
+  border: 1px solid var(--gold);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3) inset;
 }
 
-/* When matched, cards dissolve into dust and disappear completely */
-.card.matched {
-  pointer-events: none;
-  animation: stoneVanish 0.4s 0.25s forwards ease-out;
-}
-
-@keyframes stoneVanish {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    filter: brightness(1.8);
-  }
-  100% {
-    opacity: 0;
-    visibility: hidden;
-    transform: scale(0.85);
-  }
-}
-
-/* Finished Game Overlay */
-.win-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(8, 6, 5, 0.75);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.5s ease;
-}
-
-.win-overlay.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.win-modal {
-  text-align: center;
-  color: var(--gold-accent);
-  padding: 24px;
-}
-
-.win-modal h2 {
-  font-size: clamp(24px, 5vw, 36px);
-  margin-bottom: 20px;
-  text-shadow: 0 0 12px var(--gold-glow);
-}
-
-.btn-primary {
-  background: linear-gradient(180deg, #382e25 0%, #1c1611 100%);
-  color: var(--gold-accent);
-  border: 1px solid var(--gold-accent);
-  padding: 12px 32px;
-  font-size: 18px;
-  font-weight: bold;
-  border-radius: 4px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px #000, 0 0 10px var(--gold-glow);
-  transition: all 0.2s;
-}
-
-.btn-primary:hover {
-  background: #4a3d31;
-  transform: scale(1.05);
+.card.joker .front {
+  background: #3a1c1c;
+  border-color: #ff4d4d;
+  color: #ff4d4d;
 }
 </style>
 </head>
 <body>
 
-<div class="app-container">
-  <div class="floating-control">
-    <button class="btn-icon" id="reset-btn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-      <span>RESET</span>
-    </button>
-  </div>
+<div class="controls">
+  <button class="btn" id="reset">重置機關</button>
+</div>
 
-  <div class="board-wrapper">
-    <div id="board" class="board"></div>
-    
-    <div id="win-overlay" class="win-overlay">
-      <div class="win-modal">
-        <h2>⚡ MECHANISM UNLOCKED ⚡</h2>
-        <button class="btn-primary" id="again-btn">RESTART</button>
-      </div>
-    </div>
-  </div>
+<div class="board-wrapper">
+  <div id="board" class="board"></div>
 </div>
 
 <script>
-// 18 Ancient Rune/Symbol Pairs (36 items total) - No Chinese Characters
-const ancientRunes = [
-  '𓁹', '𓃠', '𓋹', '𓏞', '🔱', '🏺', 
-  '☀️', '🌙', '🐍', '⚔️', '📜', '💎', 
-  '⏳', '🛡️', '🗝️', '🗿', '🧭', '🔥'
-];
+// 12 對古老圖案標誌
+const icons = ['𓁹', '𓃠', '𓋹', '🔱', '🏺', '🐍', '📜', '💎', '🗿', '𓆣', '⚖️', '🔮'];
+// 1 張幸運 Joker 牌
+const jokerIcon = '🃏';
 
-const rowLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+let first = null, second = null, lock = false;
+const board = document.querySelector('#board');
 
-let firstCard = null;
-let secondCard = null;
-let isLocked = false;
-let matchedPairs = 0;
-
-const boardEl = document.getElementById('board');
-const winOverlay = document.getElementById('win-overlay');
-const resetBtn = document.getElementById('reset-btn');
-const againBtn = document.getElementById('again-btn');
-
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
-  return array;
+  return a;
 }
 
-function initGame() {
-  firstCard = null;
-  secondCard = null;
-  isLocked = false;
-  matchedPairs = 0;
-  boardEl.innerHTML = '';
-  winOverlay.classList.remove('show');
+function init() {
+  first = second = null;
+  lock = false;
+  board.innerHTML = '';
 
-  const deck = shuffle([...ancientRunes, ...ancientRunes]);
+  // 生成 5x5 (A1 至 E5) 座標名稱
+  const rows = ['A', 'B', 'C', 'D', 'E'];
+  const coords = [];
+  for (let r = 0; r < 5; r++) {
+    for (let c = 1; c <= 5; c++) {
+      coords.push(rows[r] + c);
+    }
+  }
 
-  deck.forEach((symbol, index) => {
-    const rowIndex = Math.floor(index / 6);
-    const colIndex = (index % 6) + 1;
-    const coordLabel = `${rowLetters[rowIndex]}${colIndex}`;
+  // 組合卡牌：12對圖案(24張) + 1張Joker = 25張
+  const deck = shuffle([...icons, ...icons, jokerIcon]);
 
-    const card = document.createElement('button');
-    card.className = 'card';
-    card.dataset.value = symbol;
-
-    card.innerHTML = `
+  deck.forEach((icon, i) => {
+    const b = document.createElement('button');
+    b.className = 'card';
+    if (icon === jokerIcon) b.classList.add('joker-card');
+    b.dataset.value = icon;
+    
+    b.innerHTML = `
       <span class="card-inner">
-        <span class="face back">${coordLabel}</span>
-        <span class="face front">${symbol}</span>
+        <span class="face back" data-coord="${coords[i]}"></span>
+        <span class="face front">${icon}</span>
       </span>
     `;
-
-    card.addEventListener('click', () => handleCardClick(card));
-    boardEl.appendChild(card);
+    b.addEventListener('click', () => pick(b));
+    board.appendChild(b);
   });
 }
 
-function handleCardClick(card) {
-  if (isLocked || card === firstCard || card.classList.contains('matched')) return;
+function pick(card) {
+  if (lock || card === first || card.classList.contains('matched') || card.classList.contains('flipped')) return;
 
   card.classList.add('flipped');
 
-  if (!firstCard) {
-    firstCard = card;
+  // 如果翻到 Joker 幸運牌，直接消去並露出底圖！
+  if (card.dataset.value === jokerIcon) {
+    setTimeout(() => {
+      card.classList.add('matched');
+    }, 600);
     return;
   }
 
-  secondCard = card;
-  isLocked = true;
+  if (!first) {
+    first = card;
+    return;
+  }
 
-  if (firstCard.dataset.value === secondCard.dataset.value) {
-    // Matched pair - disintegrates to uncover underlying mural image
-    firstCard.classList.add('matched');
-    secondCard.classList.add('matched');
-    matchedPairs++;
+  second = card;
+  lock = true;
 
-    setTimeout(() => {
-      firstCard = null;
-      secondCard = null;
-      isLocked = false;
-
-      if (matchedPairs === ancientRunes.length) {
-        setTimeout(() => winOverlay.classList.add('show'), 400);
-      }
-    }, 400);
+  if (first.dataset.value === second.dataset.value) {
+    first.classList.add('matched');
+    second.classList.add('matched');
+    first = second = null;
+    lock = false;
   } else {
-    // Unmatched - flip back
     setTimeout(() => {
-      if (firstCard) firstCard.classList.remove('flipped');
-      if (secondCard) secondCard.classList.remove('flipped');
-      firstCard = null;
-      secondCard = null;
-      isLocked = false;
-    }, 850);
+      first.classList.remove('flipped');
+      second.classList.remove('flipped');
+      first = second = null;
+      lock = false;
+    }, 900);
   }
 }
 
-resetBtn.addEventListener('click', initGame);
-againBtn.addEventListener('click', initGame);
-
-// Start game
-initGame();
+document.querySelector('#reset').onclick = init;
+init();
 </script>
 </body>
 </html>
