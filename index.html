@@ -9,7 +9,6 @@
   --bg-dark: #0a0908;
   --gold: #ffd700;
   --gold-shadow: rgba(255, 215, 0, 0.5);
-  --stone-dark: #1e1b18;
   --stone-border: #8b7355;
 }
 * { box-sizing: border-box; }
@@ -18,7 +17,7 @@ body {
   padding: 0;
   background-color: var(--bg-dark);
   color: #e0d8c3;
-  font-family: serif, system-ui, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -130,20 +129,19 @@ body {
   font-family: 'Courier New', monospace, serif;
 }
 
-/* 卡牌正面 - 亮金色古老符號 */
+/* 卡牌正面 - 改用高對比白底，圖案極度清晰 */
 .front {
   transform: rotateY(180deg);
-  background: #14110e;
-  font-size: clamp(24px, 6vw, 46px);
-  border: 2px solid var(--gold);
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4) inset;
+  background: #ffffff;
+  color: #000000;
+  font-size: clamp(28px, 7vw, 52px);
+  border: 3px solid var(--gold);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .card.joker .front {
-  background: #4a1212;
+  background: #ffe6e6;
   border-color: #ff3333;
-  color: #ff6666;
-  box-shadow: 0 0 20px rgba(255, 51, 51, 0.6) inset;
 }
 </style>
 </head>
@@ -159,9 +157,9 @@ body {
 </div>
 
 <script>
-// 12 對古老圖案標誌
-const icons = ['𓁹', '𓃠', '𓋹', '🔱', '🏺', '🐍', '📜', '💎', '🗿', '𓆣', '⚖️', '🔮'];
-// 1 張幸運 Joker 牌
+// 12 對鮮明彩色圖案 (24張)
+const icons = ['🍎', '🚀', '💎', '⚽', '⭐', '🎁', '🔔', '👑', '🔥', '🎈', '🎨', '🎯'];
+// 1 張幸運 Joker 牌 (1張)
 const jokerIcon = '🃏';
 
 let first = null, second = null, lock = false, matchedCount = 0;
@@ -221,11 +219,9 @@ function checkWin() {
 }
 
 function exitGame() {
-  // 嘗試關閉當前分頁以回到 Canva
   window.close();
-  // 若瀏覽器安全限制阻止自動關閉，則進行備用提示
   setTimeout(() => {
-    alert('請按鍵盤 Ctrl + W (Mac: Cmd + W) 或關閉此分頁返回 Canva 簡報！');
+    alert('請按鍵盤 Ctrl + W (Mac: Cmd + W) 或直接關閉此分頁返回 Canva 簡報！');
   }, 300);
 }
 
