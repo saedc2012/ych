@@ -6,11 +6,11 @@
 <title>失落文明的機關開關 (5x5)</title>
 <style>
 :root {
-  --bg-dark: #0f0d0b;
-  --gold: #d4af37;
-  --gold-glow: #ffd700;
-  --stone: #2b2622;
-  --border: #4a3e35;
+  --bg-dark: #0a0908;
+  --gold: #ffd700;
+  --gold-shadow: rgba(255, 215, 0, 0.5);
+  --stone-dark: #1e1b18;
+  --stone-border: #8b7355;
 }
 * { box-sizing: border-box; }
 body {
@@ -29,25 +29,30 @@ body {
 
 .controls {
   position: fixed;
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 14px;
   z-index: 100;
+  display: flex;
+  gap: 10px;
 }
 .btn {
-  border: 1px solid var(--gold);
-  background: rgba(20, 16, 12, 0.85);
+  border: 2px solid var(--gold);
+  background: rgba(10, 9, 8, 0.9);
   color: var(--gold);
-  border-radius: 4px;
-  padding: 8px 14px;
-  font-size: 13px;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0,0,0,0.8);
+  box-shadow: 0 0 12px rgba(0,0,0,0.9), 0 0 8px var(--gold-shadow);
   backdrop-filter: blur(4px);
   letter-spacing: 1px;
+  transition: all 0.2s ease;
 }
 .btn:hover {
   background: var(--gold);
   color: #000;
+  box-shadow: 0 0 16px var(--gold);
 }
 
 .board-wrapper {
@@ -57,8 +62,8 @@ body {
   background-image: url('https://www.salvationarmy.org.hk/ssd/schs/sites/sa_schs/files/uploadfiles/Gemini_Generated_Image_wj8nfiwj8nfiwj8n.jpg');
   background-size: cover;
   background-position: center;
-  border: 4px solid var(--border);
-  box-shadow: 0 0 30px rgba(0,0,0,0.9);
+  border: 4px solid var(--stone-border);
+  box-shadow: 0 0 35px rgba(0,0,0,0.95);
   overflow: hidden;
 }
 
@@ -74,7 +79,7 @@ body {
 
 .card {
   position: relative;
-  border: 1px solid rgba(0,0,0,0.6);
+  border: 1px solid rgba(0, 0, 0, 0.85);
   background: transparent;
   padding: 0;
   cursor: pointer;
@@ -107,35 +112,38 @@ body {
   align-items: center;
   justify-content: center;
   backface-visibility: hidden;
-  box-shadow: inset 0 0 12px rgba(0,0,0,0.8);
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.9);
 }
 
+/* 卡牌背面 - 厚重石板黑金風格 */
 .back {
-  background: linear-gradient(135deg, #3a322b 0%, #1a1512 100%);
-  border: 1px solid #5a4a3e;
+  background: radial-gradient(circle, #2c2520 0%, #12100e 100%);
+  border: 2px solid #5a4a3e;
 }
 
 .back::after {
   content: attr(data-coord);
-  font-size: clamp(14px, 3.2vw, 26px);
-  font-weight: bold;
-  color: var(--gold);
-  text-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
-  font-family: monospace, serif;
+  font-size: clamp(16px, 3.8vw, 30px);
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 8px var(--gold), 0 0 12px #000000, 2px 2px 4px #000000;
+  font-family: 'Courier New', monospace, serif;
 }
 
+/* 卡牌正面 - 亮金色古老符號 */
 .front {
   transform: rotateY(180deg);
-  background: #181410;
-  font-size: clamp(22px, 5.5vw, 42px);
-  border: 1px solid var(--gold);
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3) inset;
+  background: #14110e;
+  font-size: clamp(24px, 6vw, 46px);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4) inset;
 }
 
 .card.joker .front {
-  background: #3a1c1c;
-  border-color: #ff4d4d;
-  color: #ff4d4d;
+  background: #4a1212;
+  border-color: #ff3333;
+  color: #ff6666;
+  box-shadow: 0 0 20px rgba(255, 51, 51, 0.6) inset;
 }
 </style>
 </head>
@@ -143,6 +151,7 @@ body {
 
 <div class="controls">
   <button class="btn" id="reset">重置機關</button>
+  <button class="btn" id="close-btn">返回 Canva</button>
 </div>
 
 <div class="board-wrapper">
@@ -155,7 +164,7 @@ const icons = ['𓁹', '𓃠', '𓋹', '🔱', '🏺', '🐍', '📜', '💎', '
 // 1 張幸運 Joker 牌
 const jokerIcon = '🃏';
 
-let first = null, second = null, lock = false;
+let first = null, second = null, lock = false, matchedCount = 0;
 const board = document.querySelector('#board');
 
 function shuffle(a) {
@@ -169,6 +178,7 @@ function shuffle(a) {
 function init() {
   first = second = null;
   lock = false;
+  matchedCount = 0;
   board.innerHTML = '';
 
   // 生成 5x5 (A1 至 E5) 座標名稱
@@ -186,7 +196,7 @@ function init() {
   deck.forEach((icon, i) => {
     const b = document.createElement('button');
     b.className = 'card';
-    if (icon === jokerIcon) b.classList.add('joker-card');
+    if (icon === jokerIcon) b.classList.add('joker');
     b.dataset.value = icon;
     
     b.innerHTML = `
@@ -200,15 +210,36 @@ function init() {
   });
 }
 
+function checkWin() {
+  // 當 25 張牌完全解開露出底圖時
+  if (matchedCount === 25) {
+    setTimeout(() => {
+      alert('🎉 機關已完全解開！即將返回簡報。');
+      exitGame();
+    }, 600);
+  }
+}
+
+function exitGame() {
+  // 嘗試關閉當前分頁以回到 Canva
+  window.close();
+  // 若瀏覽器安全限制阻止自動關閉，則進行備用提示
+  setTimeout(() => {
+    alert('請按鍵盤 Ctrl + W (Mac: Cmd + W) 或關閉此分頁返回 Canva 簡報！');
+  }, 300);
+}
+
 function pick(card) {
   if (lock || card === first || card.classList.contains('matched') || card.classList.contains('flipped')) return;
 
   card.classList.add('flipped');
 
-  // 如果翻到 Joker 幸運牌，直接消去並露出底圖！
+  // 翻到 Joker 幸運牌，直接消去露出底圖
   if (card.dataset.value === jokerIcon) {
     setTimeout(() => {
       card.classList.add('matched');
+      matchedCount += 1;
+      checkWin();
     }, 600);
     return;
   }
@@ -224,8 +255,10 @@ function pick(card) {
   if (first.dataset.value === second.dataset.value) {
     first.classList.add('matched');
     second.classList.add('matched');
+    matchedCount += 2;
     first = second = null;
     lock = false;
+    checkWin();
   } else {
     setTimeout(() => {
       first.classList.remove('flipped');
@@ -237,6 +270,7 @@ function pick(card) {
 }
 
 document.querySelector('#reset').onclick = init;
+document.querySelector('#close-btn').onclick = exitGame;
 init();
 </script>
 </body>
